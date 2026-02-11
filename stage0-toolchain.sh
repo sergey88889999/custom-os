@@ -6,7 +6,7 @@ export MAKEFLAGS="-j$(nproc)"
 export WORK_DIR=$HOME/work
 export PREFIX=$HOME/toolchain
 export OUTPUT_DIR=$GITHUB_WORKSPACE/output # Папка, которую увидит YAML
-export TARGET=x86_64-custom-os-linux-gnu
+export TARGET=x86_64-custom-linux-gnu
 
 # весии компилируемых пакетов
 VERSION_BINUTILS="2.46.0"
