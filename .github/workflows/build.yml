@@ -1,3 +1,4 @@
+# file: .github/workflows/build.yml
 name: OS Build Stage 0
 on: 
   push:
@@ -9,15 +10,84 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4 # Скачивает твой репозиторий в VM
+        uses: actions/checkout@v4
 
-      - name: Run Stage 0 Script
+      # --- 1. BINUTILS ---
+      - name: Cache Binutils
+        id: cache-binutils
+        uses: actions/cache@v4
+        with:
+          path: ~/toolchain
+          key: binutils-${{ hashFiles('stage00/binutils.sh') }}
+
+      - name: Build Binutils
+        if: steps.cache-binutils.outputs.cache-hit != 'true'
         run: |
-          chmod +x stage0-toolchain.sh
-          ./stage0-toolchain.sh # Запуск твоего файла
+          chmod +x stage00/binutils.sh
+          ./stage00/binutils.sh
 
+      # --- 2. HEADERS ---
+      - name: Cache Headers
+        id: cache-headers
+        uses: actions/cache@v4
+        with:
+          path: ~/toolchain
+          # Ключ зависит от обоих скриптов! Если изменился бинутилс — заголовки тоже пересобираем
+          key: headers-${{ hashFiles('stage00/binutils.sh', 'stage00/headers.sh') }}
+          restore-keys: |
+            binutils-
+
+      - name: Install Headers
+        if: steps.cache-headers.outputs.cache-hit != 'true'
+        run: |
+          chmod +x stage00/headers.sh
+          ./stage00/headers.sh
+
+      # --- 3. GCC STAGE 1 ---
+      - name: Cache GCC Stage 1
+        id: cache-gcc
+        uses: actions/cache@v4
+        with:
+          path: ~/toolchain
+          key: gcc-s1-${{ hashFiles('stage00/binutils.sh', 'stage00/headers.sh', 'stage00/gcc-s1.sh') }}
+          restore-keys: |
+            headers-
+            binutils-
+
+      - name: Build GCC Stage 1
+        if: steps.cache-gcc.outputs.cache-hit != 'true'
+        run: |
+          chmod +x stage00/gcc-s1.sh
+          ./stage00/gcc-s1.sh
+      
+      # --- 4. GLIBC ---
+      - name: Cache Glibc
+        id: cache-glibc
+        uses: actions/cache@v4
+        with:
+          path: ~/toolchain
+          key: glibc-${{ hashFiles('stage00/binutils.sh', 'stage00/headers.sh', 'stage00/gcc-s1.sh', 'stage00/glibc.sh') }}
+          restore-keys: |
+            gcc-s1-
+            headers-
+            binutils-
+
+      - name: Build Glibc
+        if: steps.cache-glibc.outputs.cache-hit != 'true'
+        run: |
+          chmod +x stage00/glibc.sh
+          ./stage00/glibc.sh
+
+      # --- ФИНАЛЬНЫЙ СБОР ---
+      - name: Prepare Output
+        run: |
+          mkdir -p output
+          # Собираем всё из разных папок кеша в одну структуру для артефакта
+          cp -r ~/toolchain/* output/ 
+          tree output/ || ls -R output/
+          
       - name: Save Result
         uses: actions/upload-artifact@v4
         with:
-          name: stage0-binutils-result
-          path: output/ # Сохранит всё, что ты положишь в папку output
+          name: stage0-full-result
+          path: output/
