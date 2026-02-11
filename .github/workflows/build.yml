@@ -1,0 +1,23 @@
+name: OS Build Stage 0
+on: 
+  push:
+    branches:
+      - main  # Запуск при каждом пуше
+
+jobs:
+  build-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # Скачивает твой репозиторий в VM
+
+      - name: Run Stage 0 Script
+        run: |
+          chmod +x stage0-toolchain.sh
+          ./stage0-toolchain.sh # Запуск твоего файла
+
+      - name: Save Result
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage0-binutils-result
+          path: output/ # Сохранит всё, что ты положишь в папку output
