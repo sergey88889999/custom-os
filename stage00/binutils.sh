@@ -4,7 +4,13 @@ set -e
 echo "---------------- binutils.sh -----------------------"
 echo ""
 echo "--- Шаг 0: Настройка окружения ---"
-export MAKEFLAGS="-j$(nproc)"
+
+# Выводим количество ядер и инфо по памяти
+CORES=$(nproc)
+MEM_TOTAL=$(free -h | awk '/^Mem:/ {print $2}')
+echo "CPU Cores available: $CORES"
+echo "Total RAM available: $MEM_TOTAL"
+export MAKEFLAGS="-j$CORES"
 
 export WORK_DIR=$HOME/work
 export PREFIX=$HOME/toolchain
@@ -36,6 +42,8 @@ make && make install
 echo "--- Шаг 3: Проверка ---"
 $PREFIX/bin/$TARGET-ld --version
 
-echo "--- Шаг 4: Готово (Binutils собраны и установлены в $PREFIX) ---"
-echo ""
-echo "Ядер: $MAKEFLAGS"
+echo "--- Шаг 4: Очистка рабочего пространства ---"
+cd $WORK_DIR
+rm -rf binutils-${VERSION_BINUTILS}
+
+echo "---------------- binutils.sh DONE ------------------"
