@@ -5,9 +5,6 @@ echo "---------------- headers.sh -----------------------"
 echo "--- Шаг 0: Настройка окружения ---"
 # Выводим количество ядер и инфо по памяти
 CORES=$(nproc)
-MEM_TOTAL=$(free -h | awk '/^Mem:/ {print $2}')
-echo "CPU Cores available: $CORES"
-echo "Total RAM available: $MEM_TOTAL"
 export MAKEFLAGS="-j$CORES"
 
 export WORK_DIR=$HOME/work

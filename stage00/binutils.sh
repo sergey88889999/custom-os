@@ -8,8 +8,8 @@ echo "--- Шаг 0: Настройка окружения ---"
 # Выводим количество ядер и инфо по памяти
 CORES=$(nproc)
 MEM_TOTAL=$(free -h | awk '/^Mem:/ {print $2}')
-echo "CPU Cores available: $CORES"
-echo "Total RAM available: $MEM_TOTAL"
+DISK_AVAIL=$(df -h . | awk 'NR==2 {print $4}')
+
 export MAKEFLAGS="-j$CORES"
 
 export WORK_DIR=$HOME/work
@@ -46,4 +46,9 @@ echo "--- Шаг 4: Очистка рабочего пространства ---
 cd $WORK_DIR
 rm -rf binutils-${VERSION_BINUTILS}
 
+
+echo "------------------- Statistic ---------------------"
+echo "CPU Cores used: $CORES"
+echo "Total RAM: $MEM_TOTAL"
+echo "Disk space available: $DISK_AVAIL"
 echo "---------------- binutils.sh DONE ------------------"
