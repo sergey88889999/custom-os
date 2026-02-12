@@ -93,7 +93,7 @@ jobs:
         if: steps.cache-gcc-s2.outputs.cache-hit != 'true'
         run: |
           chmod +x stage00/gcc-s2.sh
-          ./stage00/gcc-s2.sh  # <--- ОН ДОЛЖЕН БЫТЬ ТУТ
+          ./stage00/gcc-s2.sh
 
       # --- ФИНАЛЬНЫЙ СБОР ---
       - name: Prepare Output

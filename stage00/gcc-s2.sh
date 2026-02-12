@@ -48,9 +48,11 @@ make
 make install
 
 echo "--- Шаг 4: Проверка ---"
+echo ""
 echo 'int main(){return 0;}' > test.c
 $PREFIX/bin/$TARGET-gcc test.c -o test
 file test
+echo ""
 
 echo "--- Шаг 5: Очистка ---"
 cd $WORK_DIR
