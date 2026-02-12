@@ -27,20 +27,18 @@ cd ..
 echo "--- Шаг 2: Конфигурация Stage 2 (Финальный кросс-компилятор) ---"
 rm -rf gcc-build-final && mkdir gcc-build-final && cd gcc-build-final
 
-# ГЛАВНЫЕ ИЗМЕНЕНИЯ ЗДЕСЬ:
-# 1. Убрали --with-newlib и --without-headers
-# 2. Включили поддержку потоков posix
-# 3. Включили сборку shared-библиотек (libstdc++.so)
 ../gcc-${VERSION_GCC}/configure --target=$TARGET \
     --prefix=$PREFIX \
     --with-sysroot=$PREFIX/$TARGET \
     --enable-languages=c,c++ \
     --enable-shared \
     --enable-threads=posix \
+    --enable-clocale=gnu \
     --enable-libstdcxx \
     --disable-multilib \
     --disable-nls \
     --disable-bootstrap \
+    --disable-libstdcxx-pch \
     --with-system-zlib
 
 echo "--- Шаг 3: Компиляция ---"
