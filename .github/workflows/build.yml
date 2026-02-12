@@ -1,5 +1,5 @@
 # file: .github/workflows/build.yml
-name: OS Build Stage 0
+name: OS Build Stage 00
 on: 
   push:
     branches:
@@ -78,6 +78,16 @@ jobs:
           chmod +x stage00/glibc.sh
           ./stage00/glibc.sh
 
+      # --- 5. GCC STAGE 2 ---
+      - name: Cache GCC Stage 2
+        id: cache-gcc-s2
+        uses: actions/cache@v4
+        with:
+          path: ~/toolchain
+          key: gcc-s2-${{ hashFiles('stage00/binutils.sh', 'stage00/headers.sh', 'stage00/gcc-s1.sh', 'stage00/glibc.sh', 'stage00/gcc-s2.sh') }}
+          restore-keys: |
+            glibc-
+            
       # --- ФИНАЛЬНЫЙ СБОР ---
       - name: Prepare Output
         run: |
