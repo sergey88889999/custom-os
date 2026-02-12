@@ -1,18 +1,14 @@
 #!/bin/bash
 # File: stage00/glibc.sh
 set -e
-
 echo "---------------- glibc.sh -----------------------"
 echo "--- Шаг 0: Настройка окружения ---"
-
-# Количество ядер и переменные
 CORES=$(nproc)
 export MAKEFLAGS="-j$CORES"
 export WORK_DIR=$HOME/work
 export PREFIX=$HOME/toolchain
 export TARGET=x86_64-custom-linux-gnu
 export PATH="$PREFIX/bin:$PATH"
-
 VERSION_GLIBC="2.43" 
 
 mkdir -p $WORK_DIR
@@ -26,10 +22,6 @@ echo "--- Шаг 2: Конфигурация ---"
 cd glibc-${VERSION_GLIBC}
 rm -rf build && mkdir build && cd build
 
-# Нюансы конфига:
-# --host: указываем наш таргет, чтобы включить кросс-компиляцию
-# --with-headers: путь к тем самым заголовкам из stage00/headers.sh
-# libc_cv_slibdir: исправляет путь для библиотек в x86_64 (чтобы не улетели в /lib64)
 ../configure \
       --prefix=/usr \
       --host=$TARGET \
@@ -43,19 +35,38 @@ echo "--- Шаг 3: Компиляция ---"
 make && make DESTDIR=$PREFIX/$TARGET install
 
 echo "--- Шаг 4: Копирование в sysroot для GCC Stage 2 ---"
-# GCC ищет заголовки и библиотеки в корне sysroot
 mkdir -p $PREFIX/$TARGET/lib
 cp -a $PREFIX/$TARGET/usr/include/* $PREFIX/$TARGET/include/
 cp -a $PREFIX/$TARGET/usr/lib/* $PREFIX/$TARGET/lib/
 
+echo "--- Шаг 4.1: Исправление линкерных скриптов ---"
+# Файлы .so в glibc - это текстовые линкерные скрипты с абсолютными путями
+# Заменяем /usr/lib на относительный путь в sysroot
+for libscript in $PREFIX/$TARGET/lib/libc.so $PREFIX/$TARGET/lib/libpthread.so $PREFIX/$TARGET/lib/libm.so; do
+    if [ -f "$libscript" ] && file "$libscript" | grep -q "ASCII text"; then
+        echo "Fixing linker script: $libscript"
+        sed -i "s|/usr/lib|/lib|g" "$libscript"
+    fi
+done
+
+# Также исправляем в usr/lib (на всякий случай)
+for libscript in $PREFIX/$TARGET/usr/lib/libc.so $PREFIX/$TARGET/usr/lib/libpthread.so $PREFIX/$TARGET/usr/lib/libm.so; do
+    if [ -f "$libscript" ] && file "$libscript" | grep -q "ASCII text"; then
+        echo "Fixing linker script: $libscript"
+        sed -i "s|/usr/lib|/lib|g" "$libscript"
+    fi
+done
+
 echo "--- Шаг 5: Проверка линковки ---"
-# Простая проверка: видит ли наш кросс-компилятор библиотеку?
 if [ -f "$PREFIX/$TARGET/usr/lib/libc.so" ]; then
     echo "SUCCESS: Glibc установлен в $PREFIX/$TARGET/usr/lib"
+    echo "Content of libc.so linker script:"
+    cat "$PREFIX/$TARGET/lib/libc.so" || true
 else
     echo "ERROR: libc.so не найден!"
     exit 1
 fi
+
 if [ -f "$PREFIX/$TARGET/include/stdio.h" ]; then
     echo "SUCCESS: Headers скопированы в $PREFIX/$TARGET/include"
 else
@@ -66,5 +77,4 @@ fi
 echo "--- Шаг 6: Очистка ---"
 cd $WORK_DIR
 rm -rf glibc-${VERSION_GLIBC}
-
 echo "---------------- glibc.sh DONE ------------------"
