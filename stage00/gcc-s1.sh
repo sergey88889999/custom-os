@@ -4,13 +4,13 @@ set -e
 echo "---------------- gcc-s1.sh -----------------------"
 echo "--- Шаг 0: Настройка окружения ---"
 CORES=$(nproc)
-MEM_TOTAL=$(free -h | awk '/^Mem:/ {print $2}')
-DISK_AVAIL=$(df -h . | awk 'NR==2 {print $4}')
 
 export MAKEFLAGS="-j$CORES"
 export WORK_DIR=$HOME/work
 export PREFIX=$HOME/toolchain
 export TARGET=x86_64-custom-linux-gnu
+export PATH="$PREFIX/bin:$PATH"
+
 VERSION_GCC="15.2.0"
 
 mkdir -p $WORK_DIR
@@ -55,8 +55,4 @@ cd $WORK_DIR
 # Удаляем и исходники, и папку сборки
 rm -rf gcc-${VERSION_GCC} gcc-build
 
-echo "------------------- Statistic ---------------------"
-echo "CPU Cores used: $CORES"
-echo "Total RAM: $MEM_TOTAL"
-echo "Disk space available: $DISK_AVAIL"
 echo "---------------- gcc-s1.sh DONE ------------------"

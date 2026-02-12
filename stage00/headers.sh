@@ -10,8 +10,8 @@ export MAKEFLAGS="-j$CORES"
 export WORK_DIR=$HOME/work
 export PREFIX=$HOME/toolchain
 export TARGET=x86_64-custom-linux-gnu
+export PATH="$PREFIX/bin:$PATH"
 
-# Твой выбор: Самая свежая стабильная версия на февраль 2026
 VERSION_LINUX="6.18.10"
 
 mkdir -p $WORK_DIR

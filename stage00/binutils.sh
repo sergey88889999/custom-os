@@ -11,12 +11,11 @@ MEM_TOTAL=$(free -h | awk '/^Mem:/ {print $2}')
 DISK_AVAIL=$(df -h . | awk 'NR==2 {print $4}')
 
 export MAKEFLAGS="-j$CORES"
-
+export PATH="$PREFIX/bin:$PATH"
 export WORK_DIR=$HOME/work
 export PREFIX=$HOME/toolchain
 export TARGET=x86_64-custom-linux-gnu
 
-# весии компилируемых пакетов
 VERSION_BINUTILS="2.46.0"
 
 mkdir -p $WORK_DIR
@@ -46,7 +45,7 @@ echo "--- Шаг 4: Очистка рабочего пространства ---
 cd $WORK_DIR
 rm -rf binutils-${VERSION_BINUTILS}
 
-
+echo ""
 echo "------------------- Statistic ---------------------"
 echo "CPU Cores used: $CORES"
 echo "Total RAM: $MEM_TOTAL"
