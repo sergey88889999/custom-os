@@ -84,10 +84,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/toolchain
+          # Важно: ключ должен быть уникальным именно для s2!
           key: gcc-s2-${{ hashFiles('stage00/binutils.sh', 'stage00/headers.sh', 'stage00/gcc-s1.sh', 'stage00/glibc.sh', 'stage00/gcc-s2.sh') }}
           restore-keys: |
             glibc-
-            
+
+      - name: Build GCC Stage 2
+        if: steps.cache-gcc-s2.outputs.cache-hit != 'true'
+        run: |
+          chmod +x stage00/gcc-s2.sh
+          ./stage00/gcc-s2.sh  # <--- ОН ДОЛЖЕН БЫТЬ ТУТ
+
       # --- ФИНАЛЬНЫЙ СБОР ---
       - name: Prepare Output
         run: |
