@@ -42,12 +42,24 @@ rm -rf build && mkdir build && cd build
 echo "--- Шаг 3: Компиляция ---"
 make && make DESTDIR=$PREFIX/$TARGET install
 
+echo "--- Шаг 4: Копирование в sysroot для GCC Stage 2 ---"
+# GCC ищет заголовки и библиотеки в корне sysroot
+mkdir -p $PREFIX/$TARGET/lib
+cp -a $PREFIX/$TARGET/usr/include/* $PREFIX/$TARGET/include/
+cp -a $PREFIX/$TARGET/usr/lib/* $PREFIX/$TARGET/lib/
+
 echo "--- Шаг 5: Проверка линковки ---"
 # Простая проверка: видит ли наш кросс-компилятор библиотеку?
 if [ -f "$PREFIX/$TARGET/usr/lib/libc.so" ]; then
     echo "SUCCESS: Glibc установлен в $PREFIX/$TARGET/usr/lib"
 else
     echo "ERROR: libc.so не найден!"
+    exit 1
+fi
+if [ -f "$PREFIX/$TARGET/include/stdio.h" ]; then
+    echo "SUCCESS: Headers скопированы в $PREFIX/$TARGET/include"
+else
+    echo "ERROR: stdio.h не найден в sysroot!"
     exit 1
 fi
 
